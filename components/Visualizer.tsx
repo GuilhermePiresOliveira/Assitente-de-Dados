@@ -248,43 +248,43 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
     switch (suggestion.chartType) {
       case 'bar':
         return (
-          // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
+// FIX: Moved `isAnimationActive` from `BarChart` to the `Bar` component to fix a TypeScript error.
           <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end" />
             <YAxis {...commonAxisProps} />
             <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} />
             <Legend {...commonLegendProps} />
-            <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} />
+            <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} isAnimationActive={false} />
           </BarChart>
         );
       case 'horizontalBar':
         return (
-            // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
+// FIX: Moved `isAnimationActive` from `BarChart` to the `Bar` component to fix a TypeScript error.
             <BarChart layout="vertical" data={chartData} margin={{ top: 5, right: 20, left: 30, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis type="number" {...commonAxisProps} />
               <YAxis dataKey={slSuggestion.xAxis} type="category" {...commonAxisProps} width={100} tick={{fontSize: 10}} />
               <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} />
               <Legend {...commonLegendProps} />
-              <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} />
+              <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} isAnimationActive={false} />
             </BarChart>
         );
       case 'line':
         return (
-          // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
+// FIX: Moved `isAnimationActive` from `LineChart` to the `Line` component to fix a TypeScript error.
           <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end"/>
             <YAxis {...commonAxisProps}/>
             <Tooltip content={tooltipContent} cursor={{ stroke: secondaryColor, strokeWidth: 1 }} />
             <Legend {...commonLegendProps}/>
-            <Line type="monotone" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} stroke={secondaryColor} strokeWidth={2} dot={{ r: 2, fill: secondaryColor }} activeDot={{ r: 6, stroke: secondaryColor }} />
+            <Line type="monotone" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} stroke={secondaryColor} strokeWidth={2} dot={{ r: 2, fill: secondaryColor }} activeDot={{ r: 6, stroke: secondaryColor }} isAnimationActive={false} />
           </LineChart>
         );
       case 'pie':
         return (
-          // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
+// FIX: Moved `isAnimationActive` from `PieChart` to the `Pie` component to fix a TypeScript error.
           <PieChart margin={{ top: 0, right: 5, left: 5, bottom: 25 }}>
             <Pie
               data={chartData}
@@ -325,18 +325,18 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
         );
       case 'scatter':
         return (
-          // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
+// FIX: Moved `isAnimationActive` from `ScatterChart` to the `Scatter` component to fix a TypeScript error.
           <ScatterChart margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis type="number" dataKey={slSuggestion.xAxis} name={slSuggestion.xAxis} {...commonAxisProps}/>
             <YAxis type="number" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} {...commonAxisProps}/>
             <Tooltip content={tooltipContent} cursor={{ strokeDasharray: '3 3' }} />
             <Legend {...commonLegendProps} />
-            <Scatter name="Data points" data={chartData} fill={scatterColor} />
+            <Scatter name="Data points" data={chartData} fill={scatterColor} isAnimationActive={false} />
           </ScatterChart>
         );
       default:
-        // FIX: The type of `suggestion` is narrowed to `never` here because all valid `chartType` cases are handled.
+        // The type of `suggestion` is narrowed to `never` here because all valid `chartType` cases are handled.
         // We cast to `any` to still be able to display the unexpected chartType for debugging purposes.
         return <div className="text-red-500 dark:text-red-400">Unsupported chart type: {(suggestion as any).chartType}</div>;
     }
