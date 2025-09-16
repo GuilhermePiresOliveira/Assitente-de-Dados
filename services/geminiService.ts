@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { DataSchema, DashboardLayout, DataRow, ColorPalette, LayoutStyle, PALETTES } from '../types';
+import { DataSchema, DashboardLayout, DataRow, ColorPalette, LayoutStyle } from '../types';
 import { inferSchema } from '../utils/dataParser';
 
 const responseSchema = {
@@ -55,19 +55,38 @@ const responseSchema = {
     required: ["kpis", "charts", "filters"]
 };
 
-export const getDashboardLayout = async (data: DataRow[], language: 'en' | 'pt', palette: ColorPalette, layout: LayoutStyle): Promise<DashboardLayout | { error: string }> => {
-  let API_KEY: string | undefined;
-
-  // Safely access the environment variable to prevent a ReferenceError if 'process' is not defined in the browser.
+// This function safely checks for the API key without crashing the browser.
+const getApiKey = (): string | undefined => {
   try {
-    API_KEY = process.env.API_KEY;
+    // This will throw a ReferenceError in a browser environment if 'process' is not defined.
+    // It's expected and handled by the catch block.
+    return process.env.API_KEY;
   } catch (e) {
-    console.error("Failed to access process.env. This is expected in some client-side environments.", e);
-    // API_KEY will remain undefined, and the check below will handle it gracefully.
+    // In client-side environments (like a static Vercel deployment), `process` does not exist.
+    // We return undefined and handle this gracefully.
+    return undefined;
   }
+};
+
+export const getDashboardLayout = async (
+  data: DataRow[],
+  language: 'en' | 'pt',
+  palette: ColorPalette,
+  layoutStyle: LayoutStyle
+): Promise<{ layout: DashboardLayout | null; error: string | null; }> => {
+  const API_KEY = getApiKey();
 
   if (!API_KEY) {
-      return { error: "API_KEY environment variable not set. Please make sure it's configured in your deployment settings and accessible to your client-side code." };
+    const errorMessage = `
+      API_KEY environment variable not set.
+
+      Configuration Issue: On a static hosting platform like Vercel, client-side code cannot access 'process.env' directly. 
+      Please ensure your API key is correctly configured in your project's Environment Variables settings on your hosting provider.
+      
+      For Vercel with frameworks like Vite or Create React App, you typically need to prefix your variable (e.g., VITE_API_KEY) for it to be included in the client-side code.
+    `;
+    console.error(errorMessage);
+    return { layout: null, error: errorMessage };
   }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
@@ -80,7 +99,7 @@ export const getDashboardLayout = async (data: DataRow[], language: 'en' | 'pt',
     : "IMPORTANT: Your entire response, including all text in the 'kpis' (especially 'title' and 'businessQuestion'), 'charts' (especially 'businessQuestion', 'insight', and 'chartRationale') sections, MUST be in English.";
 
   const layoutInstruction = `
-    - **Layout Style**: The user prefers a '${layout}' layout.
+    - **Layout Style**: The user prefers a '${layoutStyle}' layout.
       - If 'standard', provide a balanced mix of KPIs and charts.
       - If 'compact', suggest more charts (5-6) and fewer KPIs (2-3) to maximize data density.
       - If 'kpi-focused', prioritize KPIs (4) and select charts that directly support them.
@@ -148,10 +167,16 @@ export const getDashboardLayout = async (data: DataRow[], language: 'en' | 'pt',
     
     const jsonText = response.text.trim();
     const layout = JSON.parse(jsonText);
-    return layout as DashboardLayout;
+    return { layout: layout as DashboardLayout, error: null };
 
-  } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    return { error: "Failed to get dashboard layout from the AI. The model may be unavailable, the request was malformed, or the API Key is invalid." };
+  } catch (e) {
+    console.error("Error calling Gemini API or parsing its response:", e);
+    
+    let detailedError = "Failed to get dashboard layout from the AI. This could be due to an invalid API Key, network issues, or a malformed response from the model.";
+    if (e instanceof Error) {
+        detailedError += `\nDetails: ${e.message}`;
+    }
+    
+    return { layout: null, error: detailedError };
   }
 };

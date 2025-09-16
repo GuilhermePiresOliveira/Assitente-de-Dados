@@ -229,18 +229,18 @@ const AppContent: React.FC = () => {
       setParsedData(data);
       
       setLoadingMessage('loader.message.designing');
-      const result = await getDashboardLayout(data, language, colorPalette, layoutStyle);
+      const { layout, error: apiError } = await getDashboardLayout(data, language, colorPalette, layoutStyle);
 
-      if (result && 'error' in result) {
-        setError(result.error);
+      if (apiError) {
+        setError(apiError);
         setDashboardLayout(null);
-      } else if (result) {
-        setDashboardLayout(result as DashboardLayout);
+      } else {
+        setDashboardLayout(layout);
       }
       
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-      console.error(errorMessage);
+      console.error("An unexpected error occurred in handleGenerate:", e);
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -334,9 +334,9 @@ const AppContent: React.FC = () => {
             />
             
             {error && (
-              <div className="mt-6 bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg text-center">
+              <div className="mt-6 bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg text-left">
                 <p className="font-semibold">{t('app.error.oops')}</p>
-                <p className="text-sm">{`${t('app.error.failedToGenerate')} ${error}`}</p>
+                <p className="text-sm mt-1 whitespace-pre-wrap">{`${t('app.error.failedToGenerate')} ${error}`}</p>
               </div>
             )}
 
