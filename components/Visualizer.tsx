@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -65,12 +65,6 @@ const CustomTooltip = ({ active, payload, label, chartType, total }: any) => {
     return null;
   };
   
-const ChartLoader: React.FC = () => (
-    <div className="flex items-center justify-center h-full w-full">
-        <div className="w-8 h-8 border-4 border-t-indigo-500 border-gray-200 dark:border-gray-600 rounded-full animate-spin"></div>
-    </div>
-);
-
 const ChartErrorMessage: React.FC<{ message: string }> = ({ message }) => (
     <div className="flex flex-col items-center justify-center h-full w-full text-center text-red-600 dark:text-red-400 p-4 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
         <div className="font-bold text-base mb-1">⚠️ Chart Generation Failed</div>
@@ -118,18 +112,11 @@ const CustomizedTreemapContent = (props: any) => {
 };
 
 export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palette }) => {
-  const [isLoading, setIsLoading] = useState(true);
   const { theme } = useTheme();
   
   const tickColor = theme === 'dark' ? '#a0aec0' : '#4a5568';
   const gridColor = theme === 'dark' ? '#4a5568' : '#e2e8f0';
   const legendColor = theme === 'dark' ? '#e2e8f0' : '#374151';
-
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 300);
-    return () => clearTimeout(timer);
-  }, [suggestion, data]);
 
   const validationError = useMemo(() => {
     // No error if there's no data to render. The chart will just be empty.
@@ -237,10 +224,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
       return 0;
   }, [chartData, suggestion]);
 
-  if (isLoading) {
-    return <ChartLoader />;
-  }
-  
   if (validationError) {
       return <ChartErrorMessage message={validationError} />;
   }
