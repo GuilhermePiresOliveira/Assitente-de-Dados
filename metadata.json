@@ -1,0 +1,5 @@
+{
+  "name": "Data (Assitente para Analista de Dados)",
+  "description": "An intelligent assistant that analyzes your CSV or JSON data and suggests the best KPIs and chart visualizations. Upload your data to receive AI-powered insights and generate interactive charts instantly.",
+  "requestFramePermissions": []
+}
