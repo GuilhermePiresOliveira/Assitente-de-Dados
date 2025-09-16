@@ -56,10 +56,18 @@ const responseSchema = {
 };
 
 export const getDashboardLayout = async (data: DataRow[], language: 'en' | 'pt', palette: ColorPalette, layout: LayoutStyle): Promise<DashboardLayout> => {
-  const API_KEY = process.env.API_KEY;
+  let API_KEY: string | undefined;
+
+  // Safely access the environment variable to prevent a ReferenceError if 'process' is not defined in the browser.
+  try {
+    API_KEY = process.env.API_KEY;
+  } catch (e) {
+    console.error("Failed to access process.env. This is expected in some client-side environments.", e);
+    // API_KEY will remain undefined, and the check below will handle it gracefully.
+  }
 
   if (!API_KEY) {
-      throw new Error("API_KEY environment variable not set. Please configure it in your deployment settings.");
+      throw new Error("API_KEY environment variable not set. Please make sure it's configured in your deployment settings and exposed to the client-side app (e.g., using a VITE_ prefix for Vite projects).");
   }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
