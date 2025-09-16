@@ -170,17 +170,40 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
   const validationError = useMemo(() => {
     if (data.length === 0) return null;
 
+    const columns = Object.keys(data[0] || {});
+
     if (chartType === 'bar' || chartType === 'line' || chartType === 'scatter' || chartType === 'horizontalBar') {
         const slSuggestion = suggestion as BarLineScatterSuggestion;
-        const { yAxis } = slSuggestion;
+        const { xAxis, yAxis } = slSuggestion;
 
+        if (!xAxis) return `Chart configuration is missing the required 'xAxis' property.`;
         if (!yAxis) return `Chart configuration is missing the required 'yAxis' property.`;
 
-        const sampleRow = chartData.find(row => row[yAxis] !== null && row[yAxis] !== undefined);
+        if (!columns.includes(xAxis)) return `The specified xAxis column ('${xAxis}') does not exist in the data.`;
+        if (!columns.includes(yAxis)) return `The specified yAxis column ('${yAxis}') does not exist in the data.`;
+        
+        // Use chartData for type check as it might be aggregated
+        const sampleRow = chartData.find(row => row[yAxis] != null);
         if (sampleRow && typeof sampleRow[yAxis] !== 'number') {
             return `The suggested measure column ('${yAxis}') contains non-numeric data, which cannot be plotted.`;
         }
+    } else if (chartType === 'pie' || chartType === 'treemap') {
+        const pSuggestion = suggestion as PieSuggestion | TreemapSuggestion;
+        const { nameKey, dataKey } = pSuggestion;
+
+        if (!nameKey) return `Chart configuration is missing the required 'nameKey' property.`;
+        if (!dataKey) return `Chart configuration is missing the required 'dataKey' property.`;
+
+        if (!columns.includes(nameKey)) return `The specified nameKey column ('${nameKey}') does not exist in the data.`;
+        if (!columns.includes(dataKey)) return `The specified dataKey column ('${dataKey}') does not exist in the data.`;
+
+        // Use original data for type check before aggregation
+        const sampleRow = data.find(row => row[dataKey] != null);
+        if (sampleRow && typeof sampleRow[dataKey] !== 'number') {
+            return `The suggested value column ('${dataKey}') contains non-numeric data.`;
+        }
     }
+    
     return null;
   }, [suggestion, data, chartData, chartType]);
 
