@@ -13,14 +13,10 @@ export const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ isOpen, onClose, t
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [hoverRating, setHoverRating] = useState(0);
 
+    // Simplified close handler that just calls the parent function.
+    // The component's state will be naturally reset to its initial values
+    // the next time it is mounted, which is the standard and safest React pattern.
     const handleClose = useCallback(() => {
-        // Reset state for next time
-        setTimeout(() => {
-            setRating(0);
-            setComment('');
-            setIsSubmitted(false);
-            setHoverRating(0);
-        }, 300); // Wait for fade-out animation
         onClose();
     }, [onClose]);
 
@@ -36,6 +32,15 @@ export const FeedbackPopup: React.FC<FeedbackPopupProps> = ({ isOpen, onClose, t
         };
     }, [handleClose]);
     
+    // Reset submission state when the popup is opened again
+    useEffect(() => {
+        if (isOpen) {
+            setIsSubmitted(false);
+            setRating(0);
+            setComment('');
+        }
+    }, [isOpen]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         console.log('Feedback Submitted:', { rating, comment });

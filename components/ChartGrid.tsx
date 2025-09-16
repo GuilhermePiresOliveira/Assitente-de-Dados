@@ -23,9 +23,12 @@ export const ChartGrid: React.FC<ChartGridProps> = ({ suggestions, data, t, pale
     const link = document.createElement('a');
     link.setAttribute('href', url);
     link.setAttribute('download', 'dashboard_data.csv');
-    document.body.appendChild(link);
+    
+    // This method works in modern browsers without needing to append the link to the DOM,
+    // which prevents potential conflicts with React's DOM management.
     link.click();
-    document.body.removeChild(link);
+    
+    // Clean up the object URL to free memory.
     URL.revokeObjectURL(url);
   };
 
