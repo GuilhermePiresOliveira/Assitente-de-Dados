@@ -168,44 +168,56 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
   }, [chartData, chartType]);
 
   const validationError = useMemo(() => {
-    if (data.length === 0) return null;
+    // If there's no data, we can't validate, but it's not an error state.
+    // The chart will simply render as empty.
+    if (data.length === 0) {
+        return null;
+    }
 
     const columns = Object.keys(data[0] || {});
 
-    if (chartType === 'bar' || chartType === 'line' || chartType === 'scatter' || chartType === 'horizontalBar') {
-        const slSuggestion = suggestion as BarLineScatterSuggestion;
-        const { xAxis, yAxis } = slSuggestion;
-
-        if (!xAxis) return `Chart configuration is missing the required 'xAxis' property.`;
-        if (!yAxis) return `Chart configuration is missing the required 'yAxis' property.`;
-
-        if (!columns.includes(xAxis)) return `The specified xAxis column ('${xAxis}') does not exist in the data.`;
-        if (!columns.includes(yAxis)) return `The specified yAxis column ('${yAxis}') does not exist in the data.`;
-        
-        // Use chartData for type check as it might be aggregated
-        const sampleRow = chartData.find(row => row[yAxis] != null);
-        if (sampleRow && typeof sampleRow[yAxis] !== 'number') {
-            return `The suggested measure column ('${yAxis}') contains non-numeric data, which cannot be plotted.`;
+    const checkMeasureColumnType = (columnName: string) => {
+        // Find a row with a non-empty value in the column to check its type.
+        const sampleRow = data.find(row => row[columnName] != null && row[columnName] !== '');
+        if (sampleRow && typeof sampleRow[columnName] !== 'number') {
+            return `The suggested measure column ('${columnName}') contains non-numeric data, which cannot be plotted.`;
         }
-    } else if (chartType === 'pie' || chartType === 'treemap') {
-        const pSuggestion = suggestion as PieSuggestion | TreemapSuggestion;
-        const { nameKey, dataKey } = pSuggestion;
+        return null;
+    };
 
-        if (!nameKey) return `Chart configuration is missing the required 'nameKey' property.`;
-        if (!dataKey) return `Chart configuration is missing the required 'dataKey' property.`;
+    switch (chartType) {
+        case 'bar':
+        case 'line':
+        case 'scatter':
+        case 'horizontalBar': {
+            const slSuggestion = suggestion as BarLineScatterSuggestion;
+            const { xAxis, yAxis } = slSuggestion;
 
-        if (!columns.includes(nameKey)) return `The specified nameKey column ('${nameKey}') does not exist in the data.`;
-        if (!columns.includes(dataKey)) return `The specified dataKey column ('${dataKey}') does not exist in the data.`;
+            if (!xAxis) return `Chart configuration is missing the required 'xAxis' property.`;
+            if (!yAxis) return `Chart configuration is missing the required 'yAxis' property.`;
 
-        // Use original data for type check before aggregation
-        const sampleRow = data.find(row => row[dataKey] != null);
-        if (sampleRow && typeof sampleRow[dataKey] !== 'number') {
-            return `The suggested value column ('${dataKey}') contains non-numeric data.`;
+            if (!columns.includes(xAxis)) return `The specified xAxis column ('${xAxis}') does not exist in the data.`;
+            if (!columns.includes(yAxis)) return `The specified yAxis column ('${yAxis}') does not exist in the data.`;
+            
+            return checkMeasureColumnType(yAxis);
         }
+        case 'pie':
+        case 'treemap': {
+            const pSuggestion = suggestion as PieSuggestion | TreemapSuggestion;
+            const { nameKey, dataKey } = pSuggestion;
+
+            if (!nameKey) return `Chart configuration is missing the required 'nameKey' property.`;
+            if (!dataKey) return `Chart configuration is missing the required 'dataKey' property.`;
+
+            if (!columns.includes(nameKey)) return `The specified nameKey column ('${nameKey}') does not exist in the data.`;
+            if (!columns.includes(dataKey)) return `The specified dataKey column ('${dataKey}') does not exist in the data.`;
+
+            return checkMeasureColumnType(dataKey);
+        }
+        default:
+            return null;
     }
-    
-    return null;
-  }, [suggestion, data, chartData, chartType]);
+  }, [suggestion, data, chartType]);
 
 
   if (isLoading) {
