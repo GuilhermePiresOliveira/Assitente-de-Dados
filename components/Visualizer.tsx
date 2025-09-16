@@ -223,6 +223,17 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
       }
       return 0;
   }, [chartData, suggestion]);
+  
+  const dataChecksum = useMemo(() => {
+    // Creates a simple, fast checksum of the data to use as a key.
+    // This forces the chart to re-mount when data changes, avoiding complex update bugs.
+    if (!data || data.length === 0) {
+      return 'no-data';
+    }
+    const firstRow = JSON.stringify(data[0]);
+    const lastRow = JSON.stringify(data[data.length - 1]);
+    return `${data.length}-${firstRow}-${lastRow}`;
+  }, [data]);
 
   if (validationError) {
       return <ChartErrorMessage message={validationError} />;
@@ -248,44 +259,44 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
     switch (suggestion.chartType) {
       case 'bar':
         return (
-// FIX: Moved `isAnimationActive` from `BarChart` to the `Bar` component to fix a TypeScript error.
-          <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
+          // Fix: The 'animationDuration' prop is not valid on BarChart. Use 'isAnimationActive={false}' to disable animations.
+          <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }} isAnimationActive={false}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end" />
             <YAxis {...commonAxisProps} />
             <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} />
             <Legend {...commonLegendProps} />
-            <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} isAnimationActive={false} />
+            <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} />
           </BarChart>
         );
       case 'horizontalBar':
         return (
-// FIX: Moved `isAnimationActive` from `BarChart` to the `Bar` component to fix a TypeScript error.
-            <BarChart layout="vertical" data={chartData} margin={{ top: 5, right: 20, left: 30, bottom: 20 }}>
+            // Fix: The 'animationDuration' prop is not valid on BarChart. Use 'isAnimationActive={false}' to disable animations.
+            <BarChart layout="vertical" data={chartData} margin={{ top: 5, right: 20, left: 30, bottom: 20 }} isAnimationActive={false}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis type="number" {...commonAxisProps} />
               <YAxis dataKey={slSuggestion.xAxis} type="category" {...commonAxisProps} width={100} tick={{fontSize: 10}} />
               <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} />
               <Legend {...commonLegendProps} />
-              <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} isAnimationActive={false} />
+              <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} />
             </BarChart>
         );
       case 'line':
         return (
-// FIX: Moved `isAnimationActive` from `LineChart` to the `Line` component to fix a TypeScript error.
-          <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
+          // Fix: The 'animationDuration' prop is not valid on LineChart. Use 'isAnimationActive={false}' to disable animations.
+          <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }} isAnimationActive={false}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end"/>
             <YAxis {...commonAxisProps}/>
             <Tooltip content={tooltipContent} cursor={{ stroke: secondaryColor, strokeWidth: 1 }} />
             <Legend {...commonLegendProps}/>
-            <Line type="monotone" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} stroke={secondaryColor} strokeWidth={2} dot={{ r: 2, fill: secondaryColor }} activeDot={{ r: 6, stroke: secondaryColor }} isAnimationActive={false} />
+            <Line type="monotone" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} stroke={secondaryColor} strokeWidth={2} dot={{ r: 2, fill: secondaryColor }} activeDot={{ r: 6, stroke: secondaryColor }} />
           </LineChart>
         );
       case 'pie':
         return (
-// FIX: Moved `isAnimationActive` from `PieChart` to the `Pie` component to fix a TypeScript error.
-          <PieChart margin={{ top: 0, right: 5, left: 5, bottom: 25 }}>
+          // Fix: The 'animationDuration' prop is not valid on PieChart. Use 'isAnimationActive={false}' to disable animations.
+          <PieChart margin={{ top: 0, right: 5, left: 5, bottom: 25 }} isAnimationActive={false}>
             <Pie
               data={chartData}
               cx="50%"
@@ -297,7 +308,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
               nameKey="name"
               label={({ percent }: any) => (percent * 100) > 4 ? `${(percent * 100).toFixed(0)}%` : null}
               fontSize={11}
-              isAnimationActive={false}
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={palette[index % palette.length]} />
@@ -309,30 +319,27 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
         );
       case 'treemap':
         return (
-            <ResponsiveContainer width="100%" height="100%">
-                <Treemap
-                    data={chartData as any[]}
-                    dataKey="value"
-                    nameKey="name"
-                    aspectRatio={4 / 3}
-                    stroke="#fff"
-                    fill={mainColor}
-                    content={<CustomizedTreemapContent palette={palette} />}
-                    isAnimationActive={false}
-                    animationDuration={500}
-                />
-            </ResponsiveContainer>
+            <Treemap
+                data={chartData as any[]}
+                dataKey="value"
+                nameKey="name"
+                aspectRatio={4 / 3}
+                stroke="#fff"
+                fill={mainColor}
+                content={<CustomizedTreemapContent palette={palette} />}
+                animationDuration={0}
+            />
         );
       case 'scatter':
         return (
-// FIX: Moved `isAnimationActive` from `ScatterChart` to the `Scatter` component to fix a TypeScript error.
-          <ScatterChart margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
+          // Fix: The 'animationDuration' prop is not valid on ScatterChart. Use 'isAnimationActive={false}' to disable animations.
+          <ScatterChart margin={{ top: 5, right: 20, left: 0, bottom: 20 }} isAnimationActive={false}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis type="number" dataKey={slSuggestion.xAxis} name={slSuggestion.xAxis} {...commonAxisProps}/>
             <YAxis type="number" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} {...commonAxisProps}/>
             <Tooltip content={tooltipContent} cursor={{ strokeDasharray: '3 3' }} />
             <Legend {...commonLegendProps} />
-            <Scatter name="Data points" data={chartData} fill={scatterColor} isAnimationActive={false} />
+            <Scatter name="Data points" data={chartData} fill={scatterColor} />
           </ScatterChart>
         );
       default:
@@ -344,13 +351,8 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
   
   const ChartComponent = renderChart();
 
-  // The ResponsiveContainer for Treemap is handled inside its case, as it has specific width/height needs.
-  if (suggestion.chartType === 'treemap') {
-    return ChartComponent;
-  }
-
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" key={dataChecksum}>
       {ChartComponent}
     </ResponsiveContainer>
   );
