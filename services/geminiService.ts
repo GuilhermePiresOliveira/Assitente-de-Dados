@@ -61,12 +61,13 @@ export const getDashboardLayout = async (
   palette: ColorPalette,
   layoutStyle: LayoutStyle
 ): Promise<{ layout: DashboardLayout | null; error: string | null; }> => {
-  // FIX: Per coding guidelines, the API key must be obtained from process.env.API_KEY.
-  // This resolves the 'import.meta.env' TypeScript error and aligns with the requirements.
-  const API_KEY = process.env.API_KEY;
+  // FIX: In a browser environment (like Vite, which this project appears to use),
+  // environment variables are exposed on `import.meta.env`, not `process.env`.
+  // This change correctly accesses the API key to resolve the connection error.
+  const API_KEY = (import.meta.env as any).API_KEY;
 
   if (!API_KEY) {
-    const errorMessage = "API_KEY environment variable not set.";
+    const errorMessage = "Configuration Error: API key is not available. Please ensure the application is correctly configured by an administrator.";
     console.error(errorMessage);
     return { layout: null, error: errorMessage };
   }
