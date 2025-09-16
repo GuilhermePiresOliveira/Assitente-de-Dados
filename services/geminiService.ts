@@ -61,21 +61,12 @@ export const getDashboardLayout = async (
   palette: ColorPalette,
   layoutStyle: LayoutStyle
 ): Promise<{ layout: DashboardLayout | null; error: string | null; }> => {
-  // For Vite projects, environment variables MUST be prefixed with VITE_
-  // and accessed via `import.meta.env`. This is the correct way for client-side code.
-  const API_KEY = import.meta.env.VITE_API_KEY;
+  // FIX: Per coding guidelines, the API key must be obtained from process.env.API_KEY.
+  // This resolves the 'import.meta.env' TypeScript error and aligns with the requirements.
+  const API_KEY = process.env.API_KEY;
 
   if (!API_KEY) {
-    const errorMessage = `
-      API_KEY environment variable not set.
-
-      Configuration Issue: This is a Vite project. Client-side code cannot access 'process.env' directly.
-      You MUST set the API key in an environment variable named 'VITE_API_KEY'.
-      
-      Please go to your hosting provider's (e.g., Vercel) settings and create an Environment Variable:
-      - Name/Key: VITE_API_KEY
-      - Value: Your actual Google Gemini API Key
-    `;
+    const errorMessage = "API_KEY environment variable not set.";
     console.error(errorMessage);
     return { layout: null, error: errorMessage };
   }
