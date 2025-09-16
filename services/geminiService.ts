@@ -55,35 +55,26 @@ const responseSchema = {
     required: ["kpis", "charts", "filters"]
 };
 
-// This function safely checks for the API key without crashing the browser.
-const getApiKey = (): string | undefined => {
-  try {
-    // This will throw a ReferenceError in a browser environment if 'process' is not defined.
-    // It's expected and handled by the catch block.
-    return process.env.API_KEY;
-  } catch (e) {
-    // In client-side environments (like a static Vercel deployment), `process` does not exist.
-    // We return undefined and handle this gracefully.
-    return undefined;
-  }
-};
-
 export const getDashboardLayout = async (
   data: DataRow[],
   language: 'en' | 'pt',
   palette: ColorPalette,
   layoutStyle: LayoutStyle
 ): Promise<{ layout: DashboardLayout | null; error: string | null; }> => {
-  const API_KEY = getApiKey();
+  // For Vite projects, environment variables MUST be prefixed with VITE_
+  // and accessed via `import.meta.env`. This is the correct way for client-side code.
+  const API_KEY = import.meta.env.VITE_API_KEY;
 
   if (!API_KEY) {
     const errorMessage = `
       API_KEY environment variable not set.
 
-      Configuration Issue: On a static hosting platform like Vercel, client-side code cannot access 'process.env' directly. 
-      Please ensure your API key is correctly configured in your project's Environment Variables settings on your hosting provider.
+      Configuration Issue: This is a Vite project. Client-side code cannot access 'process.env' directly.
+      You MUST set the API key in an environment variable named 'VITE_API_KEY'.
       
-      For Vercel with frameworks like Vite or Create React App, you typically need to prefix your variable (e.g., VITE_API_KEY) for it to be included in the client-side code.
+      Please go to your hosting provider's (e.g., Vercel) settings and create an Environment Variable:
+      - Name/Key: VITE_API_KEY
+      - Value: Your actual Google Gemini API Key
     `;
     console.error(errorMessage);
     return { layout: null, error: errorMessage };
