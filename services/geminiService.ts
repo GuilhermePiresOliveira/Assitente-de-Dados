@@ -55,7 +55,7 @@ const responseSchema = {
     required: ["kpis", "charts", "filters"]
 };
 
-export const getDashboardLayout = async (data: DataRow[], language: 'en' | 'pt', palette: ColorPalette, layout: LayoutStyle): Promise<DashboardLayout> => {
+export const getDashboardLayout = async (data: DataRow[], language: 'en' | 'pt', palette: ColorPalette, layout: LayoutStyle): Promise<DashboardLayout | { error: string }> => {
   let API_KEY: string | undefined;
 
   // Safely access the environment variable to prevent a ReferenceError if 'process' is not defined in the browser.
@@ -67,7 +67,7 @@ export const getDashboardLayout = async (data: DataRow[], language: 'en' | 'pt',
   }
 
   if (!API_KEY) {
-      throw new Error("API_KEY environment variable not set. Please make sure it's configured in your deployment settings and exposed to the client-side app (e.g., using a VITE_ prefix for Vite projects).");
+      return { error: "API_KEY environment variable not set. Please make sure it's configured in your deployment settings and accessible to your client-side code." };
   }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
@@ -152,6 +152,6 @@ export const getDashboardLayout = async (data: DataRow[], language: 'en' | 'pt',
 
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    throw new Error("Failed to get dashboard layout from the AI. The model may be unavailable or the request was malformed.");
+    return { error: "Failed to get dashboard layout from the AI. The model may be unavailable, the request was malformed, or the API Key is invalid." };
   }
 };

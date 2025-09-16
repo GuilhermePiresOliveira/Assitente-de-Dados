@@ -229,8 +229,14 @@ const AppContent: React.FC = () => {
       setParsedData(data);
       
       setLoadingMessage('loader.message.designing');
-      const layout = await getDashboardLayout(data, language, colorPalette, layoutStyle);
-      setDashboardLayout(layout);
+      const result = await getDashboardLayout(data, language, colorPalette, layoutStyle);
+
+      if (result && 'error' in result) {
+        setError(result.error);
+        setDashboardLayout(null);
+      } else if (result) {
+        setDashboardLayout(result as DashboardLayout);
+      }
       
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
