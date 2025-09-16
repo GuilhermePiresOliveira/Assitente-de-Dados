@@ -8,6 +8,7 @@ import { DashboardLayout, DataRow, ActiveFilters, ColorPalette, LayoutStyle, PAL
 import { parseData } from './utils/dataParser';
 import { getDashboardLayout } from './services/geminiService';
 import { SunIcon, MoonIcon, MessageSquareIcon } from './components/icons';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // 1. I18N and Context Setup
 // =========================
@@ -382,11 +383,13 @@ const AppContent: React.FC = () => {
 
 // 4. App Wrapper with Providers
 const App: React.FC = () => (
-    <ThemeProvider>
-      <LanguageProvider>
-          <AppContent />
-      </LanguageProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <LanguageProvider>
+            <AppContent />
+        </LanguageProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
 );
 
 

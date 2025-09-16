@@ -9,14 +9,7 @@ interface ChartCardProps {
   t: (key: string, params?: { [key: string]: string | number }) => string;
   index: number;
   palette: string[];
-  isLoading: boolean;
 }
-
-const ChartLoader: React.FC = () => (
-    <div className="flex items-center justify-center h-full w-full">
-        <div className="w-8 h-8 border-4 border-t-indigo-500 border-gray-200 dark:border-gray-600 rounded-full animate-spin"></div>
-    </div>
-);
 
 const ChartDetailsTooltip: React.FC<{
     suggestion: ChartSuggestion;
@@ -78,7 +71,7 @@ const ChartDetailsTooltip: React.FC<{
     );
 };
 
-export const ChartCard: React.FC<ChartCardProps> = ({ suggestion, data, t, index, palette, isLoading }) => {
+export const ChartCard: React.FC<ChartCardProps> = ({ suggestion, data, t, index, palette }) => {
   return (
     <div 
       className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4 flex flex-col h-[450px] transition-all duration-300 hover:border-indigo-500 hover:shadow-indigo-500/10 hover:-translate-y-1 animate-fade-in-up"
@@ -94,7 +87,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({ suggestion, data, t, index
         </div>
       </div>
       <div className="flex-grow my-2 min-h-0">
-        {isLoading ? <ChartLoader /> : <Visualizer suggestion={suggestion} data={data} palette={palette} />}
+        <Visualizer suggestion={suggestion} data={data} palette={palette} />
       </div>
       <div className="flex-shrink-0 px-2 mt-2">
          <div className="flex items-start gap-2 text-sm text-indigo-800 dark:text-indigo-200 bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-lg">

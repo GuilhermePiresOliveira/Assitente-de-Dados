@@ -29,8 +29,6 @@ export const ChartGrid: React.FC<ChartGridProps> = ({ suggestions, data, t, pale
     URL.revokeObjectURL(url);
   };
 
-  const isDataEmpty = !data || data.length === 0;
-
   return (
     <div className="mt-8">
       <div className="flex justify-between items-center mb-4">
@@ -53,7 +51,6 @@ export const ChartGrid: React.FC<ChartGridProps> = ({ suggestions, data, t, pale
             t={t} 
             index={index}
             palette={palette}
-            isLoading={isDataEmpty}
           />
         ))}
       </div>

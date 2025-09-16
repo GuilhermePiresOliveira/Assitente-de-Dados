@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -71,11 +72,12 @@ const ChartLoader: React.FC = () => (
 );
 
 const ChartErrorMessage: React.FC<{ message: string }> = ({ message }) => (
-    <div className="flex items-center justify-center h-full w-full text-center text-red-600 dark:text-red-400 p-4 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
-        <div>
-            <p className="font-bold text-base">Chart Error</p>
-            <p className="text-sm mt-1">{message}</p>
-        </div>
+    <div className="flex flex-col items-center justify-center h-full w-full text-center text-red-600 dark:text-red-400 p-4 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
+        <div className="font-bold text-base mb-1">⚠️ Chart Generation Failed</div>
+        <p className="text-sm">The AI's suggestion for this chart was invalid with the current data.</p>
+        <p className="text-xs mt-2 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 p-2 rounded">
+          <strong>Details:</strong> {message}
+        </p>
     </div>
 );
 
@@ -118,7 +120,6 @@ const CustomizedTreemapContent = (props: any) => {
 export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palette }) => {
   const [isLoading, setIsLoading] = useState(true);
   const { theme } = useTheme();
-  const { chartType } = suggestion;
   
   const tickColor = theme === 'dark' ? '#a0aec0' : '#4a5568';
   const gridColor = theme === 'dark' ? '#4a5568' : '#e2e8f0';
@@ -130,7 +131,75 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
     return () => clearTimeout(timer);
   }, [suggestion, data]);
 
+  const validationError = useMemo(() => {
+    // No error if there's no data to render. The chart will just be empty.
+    if (data.length === 0) {
+      return null;
+    }
+
+    const columns = Object.keys(data[0] || {});
+
+    // Scans the entire dataset for a given column to ensure all values are numeric.
+    const isMeasureColumnNumeric = (columnName: string): { valid: boolean; sample?: any } => {
+      for (const row of data) {
+        const value = row[columnName];
+        if (value !== null && value !== undefined && typeof value !== 'number') {
+          return { valid: false, sample: value }; // Found a non-numeric value
+        }
+      }
+      return { valid: true };
+    };
+    
+    const { chartType } = suggestion;
+
+    if (!chartType) {
+        return "The AI suggestion is missing a 'chartType'.";
+    }
+
+    switch (chartType) {
+      case 'bar':
+      case 'line':
+      case 'scatter':
+      case 'horizontalBar': {
+        const slSuggestion = suggestion as BarLineScatterSuggestion;
+        const { xAxis, yAxis } = slSuggestion;
+
+        if (!xAxis) return `Configuration is missing the required 'xAxis' property.`;
+        if (!yAxis) return `Configuration is missing the required 'yAxis' property.`;
+        if (!columns.includes(xAxis)) return `The specified dimension column ('${xAxis}') does not exist in the data.`;
+        if (!columns.includes(yAxis)) return `The specified measure column ('${yAxis}') does not exist in the data.`;
+        
+        const validation = isMeasureColumnNumeric(yAxis);
+        if (!validation.valid) {
+          return `The measure column ('${yAxis}') contains non-numeric data (e.g., "${validation.sample}"), which cannot be plotted.`;
+        }
+        break;
+      }
+      case 'pie':
+      case 'treemap': {
+        const pSuggestion = suggestion as PieSuggestion | TreemapSuggestion;
+        const { nameKey, dataKey } = pSuggestion;
+
+        if (!nameKey) return `Configuration is missing the 'nameKey' property for chart labels.`;
+        if (!dataKey) return `Configuration is missing the 'dataKey' property for chart values.`;
+        if (!columns.includes(nameKey)) return `The specified category column ('${nameKey}') does not exist in the data.`;
+        if (!columns.includes(dataKey)) return `The specified value column ('${dataKey}') does not exist in the data.`;
+
+        const validation = isMeasureColumnNumeric(dataKey);
+        if (!validation.valid) {
+          return `The value column ('${dataKey}') contains non-numeric data (e.g., "${validation.sample}"), which cannot be plotted.`;
+        }
+        break;
+      }
+    }
+    return null; // All checks passed
+  }, [suggestion, data]);
+
+
   const chartData = useMemo(() => {
+    if (validationError) return []; // Don't compute data if validation failed
+
+    const { chartType } = suggestion;
     if (chartType === 'pie' || chartType === 'treemap') {
       return aggregateData(data, (suggestion as PieSuggestion | TreemapSuggestion).nameKey, (suggestion as PieSuggestion | TreemapSuggestion).dataKey);
     }
@@ -158,67 +227,15 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
 
     // For scatter plots or charts without aggregation
     return data;
-  }, [data, suggestion, chartType]);
+  }, [data, suggestion, validationError]);
   
   const totalForPercent = useMemo(() => {
+      const { chartType } = suggestion;
       if (chartType === 'pie' || chartType === 'treemap') {
           return (chartData as AggregatedData[]).reduce((sum, entry) => sum + (entry.value || 0), 0);
       }
       return 0;
-  }, [chartData, chartType]);
-
-  const validationError = useMemo(() => {
-    // If there's no data, we can't validate, but it's not an error state.
-    // The chart will simply render as empty.
-    if (data.length === 0) {
-        return null;
-    }
-
-    const columns = Object.keys(data[0] || {});
-
-    const checkMeasureColumnType = (columnName: string) => {
-        // Find a row with a non-empty value in the column to check its type.
-        const sampleRow = data.find(row => row[columnName] != null && row[columnName] !== '');
-        if (sampleRow && typeof sampleRow[columnName] !== 'number') {
-            return `The suggested measure column ('${columnName}') contains non-numeric data, which cannot be plotted.`;
-        }
-        return null;
-    };
-
-    switch (chartType) {
-        case 'bar':
-        case 'line':
-        case 'scatter':
-        case 'horizontalBar': {
-            const slSuggestion = suggestion as BarLineScatterSuggestion;
-            const { xAxis, yAxis } = slSuggestion;
-
-            if (!xAxis) return `Chart configuration is missing the required 'xAxis' property.`;
-            if (!yAxis) return `Chart configuration is missing the required 'yAxis' property.`;
-
-            if (!columns.includes(xAxis)) return `The specified xAxis column ('${xAxis}') does not exist in the data.`;
-            if (!columns.includes(yAxis)) return `The specified yAxis column ('${yAxis}') does not exist in the data.`;
-            
-            return checkMeasureColumnType(yAxis);
-        }
-        case 'pie':
-        case 'treemap': {
-            const pSuggestion = suggestion as PieSuggestion | TreemapSuggestion;
-            const { nameKey, dataKey } = pSuggestion;
-
-            if (!nameKey) return `Chart configuration is missing the required 'nameKey' property.`;
-            if (!dataKey) return `Chart configuration is missing the required 'dataKey' property.`;
-
-            if (!columns.includes(nameKey)) return `The specified nameKey column ('${nameKey}') does not exist in the data.`;
-            if (!columns.includes(dataKey)) return `The specified dataKey column ('${dataKey}') does not exist in the data.`;
-
-            return checkMeasureColumnType(dataKey);
-        }
-        default:
-            return null;
-    }
-  }, [suggestion, data, chartType]);
-
+  }, [chartData, suggestion]);
 
   if (isLoading) {
     return <ChartLoader />;
@@ -240,7 +257,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
         wrapperStyle: { color: legendColor, fontSize: '12px', paddingTop: '10px' }
     };
 
-    const tooltipContent = <CustomTooltip chartType={chartType} total={totalForPercent} />;
+    const tooltipContent = <CustomTooltip chartType={suggestion.chartType} total={totalForPercent} />;
     const mainColor = palette[0];
     const secondaryColor = palette[1];
     const scatterColor = palette[2];
@@ -304,19 +321,19 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
         );
       case 'treemap':
         return (
-            <Treemap
-                width={400}
-                height={200}
-                data={chartData as any[]}
-                dataKey="value"
-                nameKey="name"
-                aspectRatio={4 / 3}
-                stroke="#fff"
-                fill={mainColor}
-                content={<CustomizedTreemapContent palette={palette} />}
-                isAnimationActive={true}
-                animationDuration={500}
-            />
+            <ResponsiveContainer width="100%" height="100%">
+                <Treemap
+                    data={chartData as any[]}
+                    dataKey="value"
+                    nameKey="name"
+                    aspectRatio={4 / 3}
+                    stroke="#fff"
+                    fill={mainColor}
+                    content={<CustomizedTreemapContent palette={palette} />}
+                    isAnimationActive={true}
+                    animationDuration={500}
+                />
+            </ResponsiveContainer>
         );
       case 'scatter':
         return (
@@ -330,13 +347,22 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
           </ScatterChart>
         );
       default:
-        return <div className="text-red-500 dark:text-red-400">Unsupported chart type</div>;
+        // FIX: The type of `suggestion` is narrowed to `never` here because all valid `chartType` cases are handled.
+        // We cast to `any` to still be able to display the unexpected chartType for debugging purposes.
+        return <div className="text-red-500 dark:text-red-400">Unsupported chart type: {(suggestion as any).chartType}</div>;
     }
   };
+  
+  const ChartComponent = renderChart();
+
+  // The ResponsiveContainer for Treemap is handled inside its case, as it has specific width/height needs.
+  if (suggestion.chartType === 'treemap') {
+    return ChartComponent;
+  }
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      {renderChart()}
+      {ChartComponent}
     </ResponsiveContainer>
   );
 };
