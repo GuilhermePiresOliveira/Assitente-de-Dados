@@ -1,16 +1,6 @@
-
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { DataSchema, DashboardLayout, DataRow, ColorPalette, LayoutStyle, PALETTES } from '../types';
 import { inferSchema } from '../utils/dataParser';
-
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-    throw new Error("API_KEY environment variable not set.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const responseSchema = {
     type: Type.OBJECT,
@@ -66,6 +56,14 @@ const responseSchema = {
 };
 
 export const getDashboardLayout = async (data: DataRow[], language: 'en' | 'pt', palette: ColorPalette, layout: LayoutStyle): Promise<DashboardLayout> => {
+  const API_KEY = process.env.API_KEY;
+
+  if (!API_KEY) {
+      throw new Error("API_KEY environment variable not set. Please configure it in your deployment settings.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  
   const schema = inferSchema(data);
   const schemaString = schema.map(s => `- ${s.name} (${s.type}, e.g., "${s.example}")`).join('\n');
   
