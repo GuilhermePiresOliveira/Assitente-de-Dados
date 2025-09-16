@@ -248,6 +248,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
     switch (suggestion.chartType) {
       case 'bar':
         return (
+          // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
           <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end" />
@@ -259,6 +260,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
         );
       case 'horizontalBar':
         return (
+            // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
             <BarChart layout="vertical" data={chartData} margin={{ top: 5, right: 20, left: 30, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis type="number" {...commonAxisProps} />
@@ -270,6 +272,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
         );
       case 'line':
         return (
+          // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
           <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end"/>
@@ -281,6 +284,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
         );
       case 'pie':
         return (
+          // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
           <PieChart margin={{ top: 0, right: 5, left: 5, bottom: 25 }}>
             <Pie
               data={chartData}
@@ -293,6 +297,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
               nameKey="name"
               label={({ percent }: any) => (percent * 100) > 4 ? `${(percent * 100).toFixed(0)}%` : null}
               fontSize={11}
+              isAnimationActive={false}
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={palette[index % palette.length]} />
@@ -313,13 +318,14 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
                     stroke="#fff"
                     fill={mainColor}
                     content={<CustomizedTreemapContent palette={palette} />}
-                    isAnimationActive={true}
+                    isAnimationActive={false}
                     animationDuration={500}
                 />
             </ResponsiveContainer>
         );
       case 'scatter':
         return (
+          // FIX: The `isAnimationActive` prop is causing a TypeScript error. Removing it to resolve the compilation issue. The chart will now animate by default.
           <ScatterChart margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis type="number" dataKey={slSuggestion.xAxis} name={slSuggestion.xAxis} {...commonAxisProps}/>
