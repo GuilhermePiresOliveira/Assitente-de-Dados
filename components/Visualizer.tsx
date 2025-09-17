@@ -260,45 +260,49 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
       case 'bar':
         return (
           // Fix: The 'animationDuration' prop is not valid on BarChart. Use 'isAnimationActive={false}' to disable animations.
-          <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }} isAnimationActive={false}>
+          <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end" />
             <YAxis {...commonAxisProps} />
             <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} />
             <Legend {...commonLegendProps} />
-            <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} />
+            {/* FIX: Moved isAnimationActive to the Bar component to resolve TS error */}
+            <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} isAnimationActive={false} />
           </BarChart>
         );
       case 'horizontalBar':
         return (
             // Fix: The 'animationDuration' prop is not valid on BarChart. Use 'isAnimationActive={false}' to disable animations.
-            <BarChart layout="vertical" data={chartData} margin={{ top: 5, right: 20, left: 30, bottom: 20 }} isAnimationActive={false}>
+            <BarChart layout="vertical" data={chartData} margin={{ top: 5, right: 20, left: 30, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis type="number" {...commonAxisProps} />
               <YAxis dataKey={slSuggestion.xAxis} type="category" {...commonAxisProps} width={100} tick={{fontSize: 10}} />
               <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} />
               <Legend {...commonLegendProps} />
-              <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} />
+              {/* FIX: Moved isAnimationActive to the Bar component to resolve TS error */}
+              <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} isAnimationActive={false} />
             </BarChart>
         );
       case 'line':
         return (
           // Fix: The 'animationDuration' prop is not valid on LineChart. Use 'isAnimationActive={false}' to disable animations.
-          <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }} isAnimationActive={false}>
+          <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end"/>
             <YAxis {...commonAxisProps}/>
             <Tooltip content={tooltipContent} cursor={{ stroke: secondaryColor, strokeWidth: 1 }} />
             <Legend {...commonLegendProps}/>
-            <Line type="monotone" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} stroke={secondaryColor} strokeWidth={2} dot={{ r: 2, fill: secondaryColor }} activeDot={{ r: 6, stroke: secondaryColor }} />
+            {/* FIX: Moved isAnimationActive to the Line component to resolve TS error */}
+            <Line type="monotone" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} stroke={secondaryColor} strokeWidth={2} dot={{ r: 2, fill: secondaryColor }} activeDot={{ r: 6, stroke: secondaryColor }} isAnimationActive={false} />
           </LineChart>
         );
       case 'pie':
         return (
           // Fix: The 'animationDuration' prop is not valid on PieChart. Use 'isAnimationActive={false}' to disable animations.
-          <PieChart margin={{ top: 0, right: 5, left: 5, bottom: 25 }} isAnimationActive={false}>
+          <PieChart margin={{ top: 0, right: 5, left: 5, bottom: 25 }}>
             <Pie
-              data={chartData}
+              // FIX: Cast chartData to any[] to resolve typing issue with recharts.
+              data={chartData as any[]}
               cx="50%"
               cy="50%"
               labelLine={false}
@@ -308,6 +312,8 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
               nameKey="name"
               label={({ percent }: any) => (percent * 100) > 4 ? `${(percent * 100).toFixed(0)}%` : null}
               fontSize={11}
+              // FIX: Moved isAnimationActive to the Pie component to resolve TS error
+              isAnimationActive={false}
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={palette[index % palette.length]} />
@@ -327,19 +333,20 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
                 stroke="#fff"
                 fill={mainColor}
                 content={<CustomizedTreemapContent palette={palette} />}
-                animationDuration={0}
+                isAnimationActive={false}
             />
         );
       case 'scatter':
         return (
           // Fix: The 'animationDuration' prop is not valid on ScatterChart. Use 'isAnimationActive={false}' to disable animations.
-          <ScatterChart margin={{ top: 5, right: 20, left: 0, bottom: 20 }} isAnimationActive={false}>
+          <ScatterChart margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis type="number" dataKey={slSuggestion.xAxis} name={slSuggestion.xAxis} {...commonAxisProps}/>
             <YAxis type="number" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} {...commonAxisProps}/>
             <Tooltip content={tooltipContent} cursor={{ strokeDasharray: '3 3' }} />
             <Legend {...commonLegendProps} />
-            <Scatter name="Data points" data={chartData} fill={scatterColor} />
+            {/* FIX: Moved isAnimationActive to the Scatter component to resolve TS error */}
+            <Scatter name="Data points" data={chartData} fill={scatterColor} isAnimationActive={false} />
           </ScatterChart>
         );
       default:
