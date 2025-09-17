@@ -62,7 +62,8 @@ export const getDashboardLayout = async (
   layoutStyle: LayoutStyle
 ): Promise<{ layout: DashboardLayout | null; error: string | null; }> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
+    const ai = new GoogleGenAI({ apiKey: apiKey });
   
     const schema = inferSchema(data);
     const schemaString = schema.map(s => `- ${s.name} (${s.type}, e.g., "${s.example}")`).join('\n');
@@ -146,7 +147,7 @@ export const getDashboardLayout = async (
     
     let detailedError = "An unexpected error occurred while generating the dashboard.";
     if (e instanceof Error) {
-        if (e.message.toLowerCase().includes('api key') || e.message.includes("API_KEY")) {
+        if (e.message.toLowerCase().includes('api key') || e.message.includes("API_KEY") || e.message.includes("provide an API key")) {
             detailedError = "Could not connect to the AI service due to a configuration issue. The required API Key is either missing or invalid. This is a platform-level problem that needs to be resolved by the administrator.";
         } else {
             detailedError = `Failed to get dashboard layout from the AI. Details: ${e.message}`;
