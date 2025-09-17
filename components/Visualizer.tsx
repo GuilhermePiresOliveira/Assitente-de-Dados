@@ -223,17 +223,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
       }
       return 0;
   }, [chartData, suggestion]);
-  
-  const dataChecksum = useMemo(() => {
-    // Creates a simple, fast checksum of the data to use as a key.
-    // This forces the chart to re-mount when data changes, avoiding complex update bugs.
-    if (!data || data.length === 0) {
-      return 'no-data';
-    }
-    const firstRow = JSON.stringify(data[0]);
-    const lastRow = JSON.stringify(data[data.length - 1]);
-    return `${data.length}-${firstRow}-${lastRow}`;
-  }, [data]);
 
   if (validationError) {
       return <ChartErrorMessage message={validationError} />;
@@ -359,7 +348,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
   const ChartComponent = renderChart();
 
   return (
-    <ResponsiveContainer width="100%" height="100%" key={dataChecksum}>
+    <ResponsiveContainer width="100%" height="100%">
       {ChartComponent}
     </ResponsiveContainer>
   );
