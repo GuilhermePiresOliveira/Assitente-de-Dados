@@ -264,7 +264,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end" />
             <YAxis {...commonAxisProps} />
-            <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} />
+            <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} isAnimationActive={false} animationDuration={0} />
             <Legend {...commonLegendProps} />
             {/* FIX: Moved isAnimationActive to the Bar component to resolve TS error */}
             <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} isAnimationActive={false} />
@@ -277,7 +277,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis type="number" {...commonAxisProps} />
               <YAxis dataKey={slSuggestion.xAxis} type="category" {...commonAxisProps} width={100} tick={{fontSize: 10}} />
-              <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} />
+              <Tooltip content={tooltipContent} cursor={{ fill: `${mainColor}20` }} isAnimationActive={false} animationDuration={0} />
               <Legend {...commonLegendProps} />
               {/* FIX: Moved isAnimationActive to the Bar component to resolve TS error */}
               <Bar dataKey={slSuggestion.yAxis} fill={mainColor} name={slSuggestion.yAxis} isAnimationActive={false} />
@@ -290,7 +290,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey={slSuggestion.xAxis} {...commonAxisProps} angle={-20} textAnchor="end"/>
             <YAxis {...commonAxisProps}/>
-            <Tooltip content={tooltipContent} cursor={{ stroke: secondaryColor, strokeWidth: 1 }} />
+            <Tooltip content={tooltipContent} cursor={{ stroke: secondaryColor, strokeWidth: 1 }} isAnimationActive={false} animationDuration={0} />
             <Legend {...commonLegendProps}/>
             {/* FIX: Moved isAnimationActive to the Line component to resolve TS error */}
             <Line type="monotone" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} stroke={secondaryColor} strokeWidth={2} dot={{ r: 2, fill: secondaryColor }} activeDot={{ r: 6, stroke: secondaryColor }} isAnimationActive={false} />
@@ -319,7 +319,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
                 <Cell key={`cell-${index}`} fill={palette[index % palette.length]} />
               ))}
             </Pie>
-            <Tooltip content={tooltipContent} />
+            <Tooltip content={tooltipContent} isAnimationActive={false} animationDuration={0} />
             <Legend {...commonLegendProps}/>
           </PieChart>
         );
@@ -343,7 +343,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ suggestion, data, palett
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis type="number" dataKey={slSuggestion.xAxis} name={slSuggestion.xAxis} {...commonAxisProps}/>
             <YAxis type="number" dataKey={slSuggestion.yAxis} name={slSuggestion.yAxis} {...commonAxisProps}/>
-            <Tooltip content={tooltipContent} cursor={{ strokeDasharray: '3 3' }} />
+            <Tooltip content={tooltipContent} cursor={{ strokeDasharray: '3 3' }} isAnimationActive={false} animationDuration={0} />
             <Legend {...commonLegendProps} />
             {/* FIX: Moved isAnimationActive to the Scatter component to resolve TS error */}
             <Scatter name="Data points" data={chartData} fill={scatterColor} isAnimationActive={false} />
