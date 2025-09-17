@@ -1,7 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { DashboardLayout, DataRow, ColorPalette, LayoutStyle } from '../types';
 import { inferSchema } from '../utils/dataParser';
-import { getApiKey } from '../config';
 
 const responseSchema = {
     type: Type.OBJECT,
@@ -63,8 +62,7 @@ export const getDashboardLayout = async (
   layoutStyle: LayoutStyle
 ): Promise<{ layout: DashboardLayout | null; error: string | null; }> => {
   try {
-    const API_KEY = getApiKey();
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
     const schema = inferSchema(data);
     const schemaString = schema.map(s => `- ${s.name} (${s.type}, e.g., "${s.example}")`).join('\n');
@@ -148,9 +146,8 @@ export const getDashboardLayout = async (
     
     let detailedError = "An unexpected error occurred while generating the dashboard.";
     if (e instanceof Error) {
-        // Provide a clearer, more user-friendly message for the specific API key error.
-        if (e.message.includes("API_KEY environment variable not set")) {
-            detailedError = "Could not connect to the AI service due to a configuration issue. The required API Key is missing from the application's environment. This is a platform-level problem that needs to be resolved by the administrator.";
+        if (e.message.toLowerCase().includes('api key') || e.message.includes("API_KEY")) {
+            detailedError = "Could not connect to the AI service due to a configuration issue. The required API Key is either missing or invalid. This is a platform-level problem that needs to be resolved by the administrator.";
         } else {
             detailedError = `Failed to get dashboard layout from the AI. Details: ${e.message}`;
         }
