@@ -90,6 +90,10 @@ const translations: Translations = {
   'datatable.pagination.results': { en: 'results', pt: 'resultados' },
   'datatable.pagination.previous': { en: 'Previous', pt: 'Anterior' },
   'datatable.pagination.next': { en: 'Next', pt: 'Próximo' },
+  'dashboard.refresh.title': { en: 'Auto-Refresh', pt: 'Atualização Automática' },
+  'dashboard.refresh.off': { en: 'Off', pt: 'Desligado' },
+  'dashboard.refresh.interval': { en: '{seconds}s', pt: '{seconds}s' },
+  'dashboard.refresh.tooltip.refreshing': { en: 'Refreshing data...', pt: 'Atualizando dados...' },
   'feedback.button.tooltip': { en: 'Leave Feedback', pt: 'Deixar Feedback' },
   'feedback.popup.title': { en: 'Share Your Feedback', pt: 'Compartilhe Seu Feedback' },
   'feedback.popup.rating': { en: 'How would you rate your experience?', pt: 'Como você avalia sua experiência?' },
@@ -188,9 +192,11 @@ const AppContent: React.FC = () => {
   const [layoutStyle, setLayoutStyle] = useState<LayoutStyle>('standard');
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState<number>(0); // 0 means off
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
 
@@ -206,35 +212,47 @@ const AppContent: React.FC = () => {
     }
   }, []); // Empty dependency array ensures this runs only once on mount
 
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = useCallback(async (isBackgroundRefresh = false) => {
     if (!rawData) {
       setError('Please provide some data first.');
       return;
     }
     
-    setIsLoading(true);
-    setError(null);
-    setDashboardLayout(null);
-    setActiveFilters({});
-    
-    // Reset filter history
-    setFilterHistory([{}]);
-    setHistoryIndex(0);
+    if (isBackgroundRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+      setError(null);
+      setDashboardLayout(null);
+      setRefreshInterval(0); // Turn off auto-refresh on manual generation
+    }
     
     try {
-      setLoadingMessage('loader.message.parsing');
+      if (!isBackgroundRefresh) {
+        setLoadingMessage('loader.message.parsing');
+        // Reset filters only on manual generation
+        setActiveFilters({});
+        setFilterHistory([{}]);
+        setHistoryIndex(0);
+      }
+      
       const data = parseData(rawData);
       if (data.length === 0) {
         throw new Error("No data could be parsed. Please check the format.");
       }
       setParsedData(data);
       
-      setLoadingMessage('loader.message.designing');
+      if (!isBackgroundRefresh) {
+        setLoadingMessage('loader.message.designing');
+      }
+      
       const { layout, error: apiError } = await getDashboardLayout(data, language, colorPalette, layoutStyle);
 
       if (apiError) {
         setError(apiError);
-        setDashboardLayout(null);
+        if (!isBackgroundRefresh) {
+          setDashboardLayout(null);
+        }
       } else {
         setDashboardLayout(layout);
       }
@@ -244,10 +262,25 @@ const AppContent: React.FC = () => {
       console.error("An unexpected error occurred in handleGenerate:", e);
       setError(errorMessage);
     } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
+      if (isBackgroundRefresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+        setLoadingMessage('');
+      }
     }
   }, [rawData, language, colorPalette, layoutStyle]);
+
+  // Effect for auto-refreshing data
+  useEffect(() => {
+    if (refreshInterval > 0 && dashboardLayout && !isLoading && !isRefreshing) {
+      const intervalId = setInterval(() => {
+        handleGenerate(true); // Perform a background refresh
+      }, refreshInterval);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [refreshInterval, dashboardLayout, isLoading, isRefreshing, handleGenerate]);
 
   const handleFilterChange = (filterKey: string, value: string) => {
     // This creates a new state based on the current one
@@ -325,7 +358,7 @@ const AppContent: React.FC = () => {
             <DataInput
               rawData={rawData}
               onRawDataChange={setRawData}
-              onGenerate={handleGenerate}
+              onGenerate={() => handleGenerate(false)}
               isLoading={isLoading}
               colorPalette={colorPalette}
               onColorPaletteChange={setColorPalette}
@@ -356,6 +389,9 @@ const AppContent: React.FC = () => {
                 canRedo={canRedo}
                 palette={PALETTES[colorPalette]}
                 t={t}
+                refreshInterval={refreshInterval}
+                onIntervalChange={setRefreshInterval}
+                isRefreshing={isRefreshing}
               />
             )}
 

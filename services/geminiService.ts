@@ -98,25 +98,20 @@ export const getDashboardLayout = async (
       
       - **For KPIs**, choose high-level summary metrics and formulate a 'businessQuestion' that each KPI answers. For 'uniqueCount', apply it to a categorical column.
       - **For Filters**, choose categorical columns with a reasonable number of unique values (e.g., less than 20) that would be useful for segmenting the data.
-      - **For Charts**, each chart must answer a specific business question, provide a concise insight, and a rationale for the chart type choice.
+      
+      - **For Charts**, follow these rules meticulously to ensure a valid dashboard configuration. Failure to adhere to these property requirements will result in an error.
+          - **MANDATORY Property Requirements by Chart Type**:
+              - For \`chartType: 'bar'\`, \`chartType: 'line'\`, \`chartType: 'scatter'\`, or \`chartType: 'horizontalBar'\`: You MUST provide BOTH \`xAxis\` (a categorical or date column) AND \`yAxis\` (a numeric column).
+              - For \`chartType: 'pie'\` or \`chartType: 'treemap'\`: You MUST provide BOTH \`nameKey\` (a categorical column) AND \`dataKey\` (a numeric column).
+
+          - Each chart must answer a specific business question, provide a concise insight, and a rationale for the chart type choice.
           - ALWAYS select the single best chart type for the question and data. Do not suggest alternatives.
           
-          - **Column Selection Rules (VERY IMPORTANT - FOLLOW THESE STRICTLY)**:
-              - For ALL chart types, you must select one categorical/date column (the 'dimension') and one numeric column (the 'measure').
-              - The dimension is what you are analyzing (e.g., 'Product', 'Country', 'channel').
-              - The measure is the value you are calculating for that dimension (e.g., 'Price', 'conversions', 'spend').
+          - **Column Selection Rules**:
+              - Each chart must have one 'dimension' (a 'Categorical' or 'Date' column) and one 'measure' (a 'Numeric' column).
+              - The properties you use (\`xAxis\`, \`yAxis\`, \`nameKey\`, \`dataKey\`) MUST use column names that exist in the provided schema. Do not invent column names.
 
-              - **For 'bar', 'line', 'scatter', and 'horizontalBar' charts**:
-                  - The \`xAxis\` property MUST ALWAYS be the 'dimension' (a 'Categorical' or 'Date' column).
-                  - The \`yAxis\` property MUST ALWAYS be the 'measure' (a 'Numeric' column).
-                  - DO NOT swap \`xAxis\` and \`yAxis\` for horizontal bar charts. The frontend will handle the orientation. \`xAxis\` is always the category, \`yAxis\` is always the value.
-
-              - **For 'pie' and 'treemap' charts**:
-                  - The \`nameKey\` property MUST ALWAYS be the 'dimension' (a 'Categorical' column).
-                  - The \`dataKey\` property MUST ALWAYS be the 'measure' (a 'Numeric' column).
-                  - The column selected for \`dataKey\` must contain the numeric values to be summed for each slice/rectangle.
-
-              - The chosen columns must directly answer the 'businessQuestion'. For "What is the total spend per channel?", the dimension must be 'channel' and the measure must be 'spend'.
+          - **DO NOT** swap 'xAxis' and 'yAxis' for horizontal bar charts. The frontend handles orientation. 'xAxis' is always the category, 'yAxis' is always the value.
 
           - **Aggregation Logic**:
               - For 'bar', 'line', and 'horizontalBar' charts, if the data needs to be summed up for each category on the x-axis, you MUST include the property 'aggregation' with the value 'sum'.
