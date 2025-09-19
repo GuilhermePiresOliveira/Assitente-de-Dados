@@ -61,13 +61,15 @@ export const getDashboardLayout = async (
   palette: ColorPalette,
   layoutStyle: LayoutStyle
 ): Promise<{ layout: DashboardLayout | null; error: string | null; }> => {
+  // The API key must be provided by the execution environment.
+  // This check ensures a clear error is thrown if the configuration is missing.
+  if (typeof process === 'undefined' || !process.env || !process.env.API_KEY) {
+    console.error("API_KEY is not configured in the execution environment.");
+    // Return a specific error key that the UI can use to show a tailored message.
+    return { layout: null, error: 'ERROR_API_KEY_MISSING' };
+  }
+
   try {
-    // The API key must be provided by the execution environment.
-    // This check ensures a clear error is thrown if the configuration is missing.
-    if (typeof process === 'undefined' || !process.env || !process.env.API_KEY) {
-      throw new Error("API_KEY is not configured in the execution environment.");
-    }
-    
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
     const schema = inferSchema(data);
@@ -145,14 +147,9 @@ export const getDashboardLayout = async (
   } catch (e) {
     console.error("Error in getDashboardLayout:", e);
     
-    let detailedError = "An unexpected error occurred while generating the dashboard.";
-    if (e instanceof Error) {
-        if (e.message.includes("API_KEY") || e.message.includes("environment")) {
-            detailedError = "Could not connect to the AI service due to a configuration issue. The required API Key is either missing or invalid. This is a platform-level problem that needs to be resolved by the administrator.";
-        } else {
-            detailedError = `Failed to get dashboard layout from the AI. Details: ${e.message}`;
-        }
-    }
+    const detailedError = e instanceof Error 
+      ? `Failed to get dashboard layout from the AI. Details: ${e.message}`
+      : "An unexpected error occurred while generating the dashboard.";
     
     return { layout: null, error: detailedError };
   }

@@ -7,7 +7,7 @@ import { FeedbackPopup } from './components/FeedbackPopup';
 import { DashboardLayout, DataRow, ActiveFilters, ColorPalette, LayoutStyle, PALETTES } from './types';
 import { parseData } from './utils/dataParser';
 import { getDashboardLayout } from './services/geminiService';
-import { SunIcon, MoonIcon, MessageSquareIcon } from './components/icons';
+import { SunIcon, MoonIcon, MessageSquareIcon, ShieldExclamationIcon } from './components/icons';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // 1. I18N and Context Setup
@@ -23,6 +23,8 @@ const translations: Translations = {
   'app.creator': { en: 'Created with love by Guilherme Pires', pt: 'Criado com amor por Guilherme Pires' },
   'app.error.oops': { en: 'Oops! Something went wrong.', pt: 'Ops! Algo deu errado.' },
   'app.error.failedToGenerate': { en: 'Failed to generate dashboard.', pt: 'Falha ao gerar o dashboard.' },
+  'app.error.apiKeyMissing.title': { en: 'Configuration Action Required', pt: 'Ação de Configuração Necessária' },
+  'app.error.apiKeyMissing.body': { en: 'The application cannot connect to the AI service because the required API Key has not been set up in the environment. This is a platform configuration issue that must be resolved by an administrator in the environment settings. It cannot be fixed within the application code.', pt: 'O aplicativo não consegue se conectar ao serviço de IA porque a Chave de API necessária não foi configurada no ambiente. Este é um problema de configuração da plataforma que deve ser resolvido por um administrador nas configurações do ambiente. Não é possível corrigi-lo alterando o código da aplicação.' },
   'datainput.paste': { en: 'Paste Data', pt: 'Colar Dados' },
   'datainput.upload': { en: 'Upload File', pt: 'Carregar Arquivo' },
   'datainput.placeholder': { en: 'Paste your CSV or JSON data here...', pt: 'Cole seus dados CSV ou JSON aqui...' },
@@ -368,10 +370,24 @@ const AppContent: React.FC = () => {
             />
             
             {error && (
-              <div className="mt-6 bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg text-left">
-                <p className="font-semibold">{t('app.error.oops')}</p>
-                <p className="text-sm mt-1 whitespace-pre-wrap">{`${t('app.error.failedToGenerate')} ${error}`}</p>
-              </div>
+                error === 'ERROR_API_KEY_MISSING' ? (
+                  <div className="mt-6 bg-yellow-50 dark:bg-yellow-900/40 border-l-4 border-yellow-400 dark:border-yellow-500 text-yellow-800 dark:text-yellow-200 p-4 rounded-r-lg text-left" role="alert">
+                      <div className="flex">
+                          <div className="flex-shrink-0">
+                              <ShieldExclamationIcon className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
+                          </div>
+                          <div className="ml-3">
+                              <p className="font-bold text-lg">{t('app.error.apiKeyMissing.title')}</p>
+                              <p className="text-sm mt-2">{t('app.error.apiKeyMissing.body')}</p>
+                          </div>
+                      </div>
+                  </div>
+                ) : (
+                  <div className="mt-6 bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg text-left">
+                    <p className="font-semibold">{t('app.error.oops')}</p>
+                    <p className="text-sm mt-1 whitespace-pre-wrap">{`${t('app.error.failedToGenerate')} ${error}`}</p>
+                  </div>
+                )
             )}
 
             {isLoading && <Loader message={loadingMessage} t={t} />}
