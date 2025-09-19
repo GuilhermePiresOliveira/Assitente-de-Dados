@@ -62,14 +62,13 @@ export const getDashboardLayout = async (
   layoutStyle: LayoutStyle
 ): Promise<{ layout: DashboardLayout | null; error: string | null; }> => {
   try {
-    const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
-
-    if (!apiKey) {
-      // Throw an error that will be caught and formatted by the catch block
-      throw new Error("API Key not found or is invalid.");
+    // The API key must be provided by the execution environment.
+    // This check ensures a clear error is thrown if the configuration is missing.
+    if (typeof process === 'undefined' || !process.env || !process.env.API_KEY) {
+      throw new Error("API_KEY is not configured in the execution environment.");
     }
     
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
     const schema = inferSchema(data);
     const schemaString = schema.map(s => `- ${s.name} (${s.type}, e.g., "${s.example}")`).join('\n');
@@ -148,7 +147,7 @@ export const getDashboardLayout = async (
     
     let detailedError = "An unexpected error occurred while generating the dashboard.";
     if (e instanceof Error) {
-        if (e.message.toLowerCase().includes('api key') || e.message.includes("API_KEY") || e.message.includes("provide an API key")) {
+        if (e.message.includes("API_KEY") || e.message.includes("environment")) {
             detailedError = "Could not connect to the AI service due to a configuration issue. The required API Key is either missing or invalid. This is a platform-level problem that needs to be resolved by the administrator.";
         } else {
             detailedError = `Failed to get dashboard layout from the AI. Details: ${e.message}`;
