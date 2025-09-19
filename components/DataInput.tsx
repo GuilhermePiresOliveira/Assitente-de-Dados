@@ -184,16 +184,17 @@ export const DataInput: React.FC<DataInputProps> = ({
   const renderUploadContent = () => {
     if (isUploading) {
       return (
-        <div className="flex flex-col items-center justify-center w-full h-48 px-4">
-          <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {t('datainput.upload.processing')} <span className="font-semibold">{uploadedFileName}</span>...
+        <div className="flex flex-col items-center justify-center w-full h-48 px-4 animate-fade-in">
+          <p className="mb-2 text-base font-medium text-gray-800 dark:text-gray-200">
+            {t('datainput.upload.processing')}
           </p>
-          <div className="w-full bg-gray-200 rounded-full dark:bg-gray-700">
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400 truncate max-w-full px-4">{uploadedFileName}</p>
+          <div className="w-full max-w-xs bg-gray-200 rounded-full dark:bg-gray-700">
             <div 
-              className="bg-indigo-600 text-xs font-medium text-indigo-100 text-center p-0.5 leading-none rounded-full transition-all duration-300 ease-linear" 
+              className="bg-gradient-to-r from-indigo-500 to-purple-600 h-4 rounded-full flex items-center justify-center text-xs font-bold text-white transition-all duration-300 ease-out"
               style={{ width: `${uploadProgress}%` }}
             >
-              {uploadProgress > 10 ? `${Math.round(uploadProgress)}%` : ''}
+              {uploadProgress > 10 && `${Math.round(uploadProgress)}%`}
             </div>
           </div>
         </div>
