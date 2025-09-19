@@ -62,8 +62,7 @@ export const getDashboardLayout = async (
   layoutStyle: LayoutStyle
 ): Promise<{ layout: DashboardLayout | null; error: string | null; }> => {
   try {
-    const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
-    const ai = new GoogleGenAI({ apiKey: apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
     const schema = inferSchema(data);
     const schemaString = schema.map(s => `- ${s.name} (${s.type}, e.g., "${s.example}")`).join('\n');
